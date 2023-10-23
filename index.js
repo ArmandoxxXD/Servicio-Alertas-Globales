@@ -27,6 +27,12 @@ console.log('Usuario conectado:', socket.id);
     io.emit('excel-procesado', data);
     });
 
+    socket.on('reporte-eliminado', (data) => {
+      console.log('Reporte Eliminado con exito:', data);
+      // Emitir un evento a la aplicación Angular
+      io.emit('reporte-eliminado', data);
+    });
+
     // Desconexión del usuario
     socket.on('disconnect', () => {
         console.log('Usuario desconectado:', socket.id);
