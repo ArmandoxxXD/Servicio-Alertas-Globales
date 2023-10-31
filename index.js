@@ -21,10 +21,10 @@ io.on('connection', (socket) => {
 console.log('Usuario conectado:', socket.id);
 
     // Ejemplo: Cuando un archivo Excel se procesa con éxito
-    socket.on('excel-procesado', (data) => {
+    socket.on('reporte-cargado', (data) => {
     console.log('Archivo Excel procesado con éxito:', data);
     // Emitir un evento a la aplicación Angular
-    io.emit('excel-procesado', data);
+    io.emit('reporte-cargado', data);
     });
 
     socket.on('reporte-eliminado', (data) => {
