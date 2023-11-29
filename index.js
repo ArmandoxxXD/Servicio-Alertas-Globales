@@ -36,7 +36,7 @@ class AlertMediator {
       }
     });
 
-    this.io.emit("reporte-cargado", data);
+    this.io.emit("reporte-cargado", sender,data);
   }
 
   // Método para enviar alertas de reporte eliminado
@@ -47,9 +47,11 @@ class AlertMediator {
         console.log(`- [${user}]`);
       }
     });
-    this.io.emit("reporte-eliminado", data);
+    this.io.emit("reporte-eliminado", sender,data);
   }
 }
+
+const alertMediator = new AlertMediator(io);
 
 // Configurar eventos de Socket.io
 io.on("connection", (socket) => {
@@ -72,7 +74,9 @@ io.on("connection", (socket) => {
 
   // Desconexión del usuario
   socket.on("disconnect", () => {
-    console.log("Usuario desconectado:", socket.id);
+  if(socket.user){
+    console.log("Usuario desconectado:", socket.user);
+  }
 
     // Eliminar usuario del Mediator cuando se desconecta
     const index = alertMediator.users.indexOf(socket.user);
@@ -92,5 +96,3 @@ const port = process.env.PORT || 2000;
 server.listen(port, () => {
   console.log(`Servicio escuchando en el puerto ${port}`);
 });
-
-const alertMediator = new AlertMediator(io);
