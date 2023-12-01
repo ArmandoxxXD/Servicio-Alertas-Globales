@@ -21,6 +21,7 @@ class AlertMediator {
   constructor(io) {
     this.io = io;
     this.users = [];
+    this.receptores = [];
   }
 
   addUser(user) {
@@ -29,25 +30,35 @@ class AlertMediator {
 
   // Método para enviar alertas de reporte cargado
   sendReporteCargado(sender,data) {
-    console.log(`Usuario [${sender}] envió alerta con éxito a:`);
     this.users.forEach((user) => {
       if (user !== sender) {
-        console.log(`- [${user}]`);
+        this.receptores.push(user)
       }
     });
+    let uniqueSet = new Set(this.receptores);
+    const receivers = [...uniqueSet]
 
-    this.io.emit("reporte-cargado", sender,data);
+    const newData = `${sender}, ${data}, y se le notifico a los usuarios: ${receivers}`;
+    this.io.emit("reporte-cargado", newData);
   }
 
   // Método para enviar alertas de reporte eliminado
   sendReporteEliminado(sender,data) {
-    console.log(`Usuario [${sender}] emvio alerta con éxito a:`);
     this.users.forEach((user) => {
       if (user !== sender) {
-        console.log(`- [${user}]`);
+        this.receptores.push(user)
+        const mensajeParaReceptor = `Eres recibidor :)`;
+        this.io.to(user.socketId).emit("reporte-cargado", mensajeParaReceptor);
       }
     });
-    this.io.emit("reporte-eliminado", sender,data);
+    let uniqueSet = new Set(this.receptores);
+    const receivers = [...uniqueSet]
+
+    const fecha = new Date(data.data.fecha);
+    const formattedDate = `${fecha.getMonth() + 1}/${fecha.getFullYear()}`; // Los meses van de 0 a 11, así que añadimos +1
+
+    const newData = `${sender}, ${data.message}, ${formattedDate}, y se le notifico a los usuarios: ${receivers}`;
+    this.io.to(sender.socketId).emit("reporte-eliminado", newData);
   }
 }
 
