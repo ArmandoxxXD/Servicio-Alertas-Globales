@@ -45,12 +45,13 @@ class AlertMediator {
   // Método para enviar alertas de reporte eliminado
   sendReporteEliminado(sender,data) {
     this.users.forEach((user) => {
-      if (user !== sender) {
+      if (user.name !== sender) {
         this.receptores.push(user)
         const mensajeParaReceptor = `Eres recibidor :)`;
         this.io.to(user.socketId).emit("reporte-cargado", mensajeParaReceptor);
       }
     });
+
     let uniqueSet = new Set(this.receptores);
     const receivers = [...uniqueSet]
 
@@ -58,7 +59,7 @@ class AlertMediator {
     const formattedDate = `${fecha.getMonth() + 1}/${fecha.getFullYear()}`; // Los meses van de 0 a 11, así que añadimos +1
 
     const newData = `${sender}, ${data.message}, ${formattedDate}, y se le notifico a los usuarios: ${receivers}`;
-    this.io.to(sender.socketId).emit("reporte-eliminado", newData);
+    this.io.to(sender).emit("reporte-eliminado", newData);
   }
 }
 
@@ -69,10 +70,10 @@ io.on("connection", (socket) => {
 
   // Agregar usuario al Mediator cuando se conecta
   socket.on("login", (data) => {
-    console.log('Usuario Conectado:'+data);
-    socket.user = data || { user_id: socket.id }; 
-
-    alertMediator.addUser(socket.user)
+    console.log('Usuario Conectado:'+data+socket.id);
+    // socket.user = data || { user_id: socket.id }; 
+    const userData = { name: data, socketId: socket.id };
+    alertMediator.addUser(userData)
   });
 
   socket.on("reporte-cargado", (data) => {
