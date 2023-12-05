@@ -28,13 +28,13 @@ class AlertMediator {
   }
 
   // Método para enviar alertas de reporte cargado
-  sendReporteCargado(idSender,sender,data) {
+  sendReporteCargado(sender,data) {
     this.receptores=[]
     this.users.forEach((user) => {
       if (user.username !== sender) {
         this.receptores.push(user)
-        const mensajeParaReceptor = `${'asdas' +sender, data}`;
-        io.to(user.id).emit("reporte-cargado", mensajeParaReceptor);
+        const mensajeParaReceptor = `${sender}, ${data}`;
+        io.to(user.username).emit("reporte-cargado", mensajeParaReceptor);
       }
     });
 
@@ -47,11 +47,11 @@ class AlertMediator {
       newData = `${sender}, ${data}`;
     }
 
-    io.emit("reporte-cargado", newData);
+    io.to(sender).emit("reporte-cargado", newData);
   }
 
   // Método para enviar alertas de reporte eliminado
-  sendReporteEliminado(idSender,sender,data) {
+  sendReporteEliminado(sender,data) {
     this.receptores=[]
     const fecha = new Date(data.data.fecha);
     const formattedDate = `${fecha.getMonth() + 1}/${fecha.getFullYear()}`; // Los meses van de 0 a 11, así que añadimos +1
@@ -59,16 +59,12 @@ class AlertMediator {
     this.users.forEach((user) => {
       if (user.username !== sender) {
         this.receptores.push(user)
-        console.log('Recibidor:' +`${user.username}`)
-        const id = user.id
-        console.log(typeof id)
         const mensajeParaReceptor = `${sender}, ${data.message}, ${formattedDate}`;
-        io.to(id).emit("reporte-eliminado", mensajeParaReceptor);
+        io.to(user.username).emit("reporte-eliminado", mensajeParaReceptor);
       }
     });
 
     const nombresReceptores = this.receptores.map(user => user.username).join(", ");
-    console.log('Emisor:' + sender)
 
     let newData = '';
     if (nombresReceptores.length !== 0) {
@@ -76,7 +72,7 @@ class AlertMediator {
     } else {
       newData = `${sender}, ${data.message}, ${formattedDate}`;
     }
-    io.emit("reporte-eliminado", newData);
+    io.to(sender).emit("reporte-eliminado", newData);
   }
 }
 
@@ -104,12 +100,12 @@ io.on("connection", (socket) => {
     io.emit("usuarios-conectados", Array.from(connectedUsers));
   });
 
-  socket.on("reporte-cargado", (id,sender,data) => {
-    alertMediator.sendReporteCargado(id,sender,data);
+  socket.on("reporte-cargado", (sender,data) => {
+    alertMediator.sendReporteCargado(sender,data);
   });
 
-  socket.on("reporte-eliminado", (id,sender,data) => {
-    alertMediator.sendReporteEliminado(id,sender,data);
+  socket.on("reporte-eliminado", (sender,data) => {
+    alertMediator.sendReporteEliminado(sender,data);
   });
 
   // Desconexión del usuario
